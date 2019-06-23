@@ -1,7 +1,10 @@
 package com.androiddesdecero.arquitecturamvvm.model;
 
+import androidx.room.Entity;
+
 import com.google.gson.annotations.SerializedName;
 
+@Entity(primaryKeys = "login")
 public class User {
 
     @SerializedName("login")
