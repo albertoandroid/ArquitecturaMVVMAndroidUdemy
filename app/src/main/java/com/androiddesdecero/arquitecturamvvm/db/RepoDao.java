@@ -8,6 +8,7 @@ import androidx.room.Query;
 
 import com.androiddesdecero.arquitecturamvvm.model.Contributor;
 import com.androiddesdecero.arquitecturamvvm.model.Repo;
+import com.androiddesdecero.arquitecturamvvm.model.RepoSearchResult;
 
 import java.util.List;
 
@@ -31,4 +32,16 @@ public abstract class RepoDao {
 
     @Query("SELECT login, avatarUrl, repoName, repoOwner, contributions FROM contributor WHERE repoName = :name AND repoOwner = :owner ORDER BY contributions DESC")
     public abstract LiveData<List<Contributor>> loadContributors(String owner, String name);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    public abstract void insert(RepoSearchResult result);
+
+    @Query("SELECT * FROM RepoSearchResult WHERE query = :query")
+    public abstract LiveData<RepoSearchResult> search(String query);
+
+    @Query("SELECT * FROM Repo WHERE id in(:repoIds)")
+    protected abstract LiveData<List<Repo>> loadById(List<Integer> repoIds);
+
+    @Query("SELECT * FROM RepoSearchResult WHERE query = :query")
+    public abstract RepoSearchResult findSearchResult(String query);
 }
