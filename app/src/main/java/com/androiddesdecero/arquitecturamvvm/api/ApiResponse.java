@@ -1,11 +1,13 @@
 package com.androiddesdecero.arquitecturamvvm.api;
 
 import android.app.Application;
+import android.util.ArrayMap;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import retrofit2.Response;
@@ -50,7 +52,37 @@ public class ApiResponse<T> {
             errorMessage = message;
             body = null;
         }
+        String linkHeader = response.headers().get("link");
+        if(linkHeader == null){
+            links = Collections.emptyMap();
+        }else{
+            links = new ArrayMap<>();
+            Matcher matcher = LINK_PATTERN.matcher(linkHeader);
+
+            while (matcher.find()){
+                int count = matcher.groupCount();
+                if(count == 2){
+                    links.put(matcher.group(2), matcher.group(1));
+                }
+            }
+        }
     }
 
+    public Integer getNextPage(){
+        String next = links.get(NEXT_LINK);
+        if(next == null){
+            return null;
+        }
+        Matcher matcher = PAGE_PATTERN.matcher(next);
 
+        if(!matcher.find() || matcher.groupCount() != 1){
+            return null;
+        }
+        try {
+            return Integer.parseInt(matcher.group(1));
+        } catch (NumberFormatException ex){
+            Log.d("cannot parse next", next);
+            return null;
+        }
+    }
 }
