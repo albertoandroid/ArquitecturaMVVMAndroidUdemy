@@ -14,7 +14,7 @@ import java.util.List;
 
 import retrofit2.Response;
 
-public class 28 implements Runnable {
+public class FetchNextSearchPageTask implements Runnable {
 
     private final MutableLiveData<Resource<Boolean>> liveData = new MutableLiveData<>();
     private final String query;
