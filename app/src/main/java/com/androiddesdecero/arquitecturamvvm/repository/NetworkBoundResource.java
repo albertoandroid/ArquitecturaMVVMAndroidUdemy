@@ -46,7 +46,33 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
 
 
     private void fetchFromNetwork(final LiveData<ResultType> dbSource){
-
+        LiveData<ApiResponse<RequestType>> apiResponse = createCall();
+        result.addSource(dbSource, new Observer<ResultType>() {
+            @Override
+            public void onChanged(ResultType newData) {
+                NetworkBoundResource.this.setValue(Resource.loading(newData));
+            }
+        });
+        result.addSource(apiResponse, response -> {
+            result.removeSource(apiResponse);
+            result.removeSource(dbSource);
+            if(response.isSuccessful()){
+                appExecutors.diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        NetworkBoundResource.this.saveCallResult(NetworkBoundResource.this.processResponse(response));
+                        appExecutors.mainThread().execute(() -> {
+                            result.addSource(NetworkBoundResource.this.loadFromDb(), newData ->
+                                    NetworkBoundResource.this.setValue(Resource.success(newData)));
+                        });
+                    }
+                });
+            }else{
+                onFechtFailed();
+                result.addSource(dbSource, newData ->
+                        setValue(Resource.error(response.errorMessage, newData)));
+            }
+        });
     }
 
     @MainThread

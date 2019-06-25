@@ -68,6 +68,10 @@ public class ApiResponse<T> {
         }
     }
 
+    public boolean isSuccessful(){
+        return code >= 200 && code <300;
+    }
+
     public Integer getNextPage(){
         String next = links.get(NEXT_LINK);
         if(next == null){
