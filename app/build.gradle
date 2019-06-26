@@ -21,6 +21,10 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    dataBinding {
+        enabled true
+    }
 }
 
 dependencies {
@@ -47,5 +51,9 @@ dependencies {
     implementation 'com.google.dagger:dagger-android-support:2.22.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.22.1'
+
+    //GLIDE
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
 
 }
