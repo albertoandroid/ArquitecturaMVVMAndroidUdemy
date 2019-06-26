@@ -7,6 +7,7 @@ import com.androiddesdecero.arquitecturamvvm.api.ApiResponse;
 import com.androiddesdecero.arquitecturamvvm.api.WebServiceApi;
 import com.androiddesdecero.arquitecturamvvm.db.GitHubDb;
 import com.androiddesdecero.arquitecturamvvm.db.RepoDao;
+import com.androiddesdecero.arquitecturamvvm.model.Contributor;
 import com.androiddesdecero.arquitecturamvvm.model.Repo;
 import com.androiddesdecero.arquitecturamvvm.utils.RateLimiter;
 
@@ -86,6 +87,43 @@ public class RepoRepository {
             @Override
             protected LiveData<ApiResponse<Repo>> createCall() {
                 return githubService.getRepo(owner, name);
+            }
+        }.asLiveData();
+    }
+
+    public LiveData<Resource<List<Contributor>>> loadContributors(String owner, String name){
+        return new NetworkBoundResource<List<Contributor>, List<Contributor>>(appExecutors){
+
+            @Override
+            protected boolean shouldFetch(List<Contributor> data) {
+                return data == null || data.isEmpty();
+            }
+
+            @Override
+            protected LiveData<List<Contributor>> loadFromDb() {
+                return repoDao.loadContributors(owner, name);
+            }
+
+            @Override
+            protected void saveCallResult(List<Contributor> contributors) {
+                for(Contributor contributor: contributors){
+                    contributor.setRepoName(name);
+                    contributor.setRepoName(owner);
+                }
+                db.beginTransaction();
+                try{
+                    repoDao.creatreRepoIfNotExists(new Repo(Repo.UNKNOWN_ID, name, owner + "/" +name,
+                            "", 0, new Repo.Owner(owner, null)));
+                    repoDao.insertContributors(contributors);
+                    db.setTransactionSuccessful();
+                }finally {
+                    db.endTransaction();
+                }
+            }
+
+            @Override
+            protected LiveData<ApiResponse<List<Contributor>>> createCall() {
+                return githubService.getContributors(owner, name);
             }
         }.asLiveData();
     }

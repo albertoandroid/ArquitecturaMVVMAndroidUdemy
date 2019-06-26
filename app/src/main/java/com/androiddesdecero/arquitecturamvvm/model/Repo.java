@@ -10,6 +10,8 @@ import com.google.gson.annotations.SerializedName;
         primaryKeys = {"name", "owner_login"})
 public class Repo {
 
+    public static final int UNKNOWN_ID = -1;
+
     public final int id;
     @SerializedName("name")
     public final String name;
