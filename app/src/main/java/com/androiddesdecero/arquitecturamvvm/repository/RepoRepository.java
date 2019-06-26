@@ -64,4 +64,29 @@ public class RepoRepository {
         }.asLiveData();
 
     }
+
+    public LiveData<Resource<Repo>> loadRepo(String owner, String name){
+        return new NetworkBoundResource<Repo, Repo>(appExecutors){
+
+            @Override
+            protected boolean shouldFetch(Repo data) {
+                return data == null;
+            }
+
+            @Override
+            protected LiveData<Repo> loadFromDb() {
+                return repoDao.load(owner, name);
+            }
+
+            @Override
+            protected void saveCallResult(Repo item) {
+                repoDao.insert(item);
+            }
+
+            @Override
+            protected LiveData<ApiResponse<Repo>> createCall() {
+                return githubService.getRepo(owner, name);
+            }
+        }.asLiveData();
+    }
  }
