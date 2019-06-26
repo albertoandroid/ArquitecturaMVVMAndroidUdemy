@@ -68,7 +68,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
                     }
                 });
             }else{
-                onFechtFailed();
+                onFetchFailed();
                 result.addSource(dbSource, newData ->
                         setValue(Resource.error(response.errorMessage, newData)));
             }
@@ -81,7 +81,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
     @MainThread
     protected abstract LiveData<ResultType> loadFromDb();
 
-    protected void onFechtFailed(){}
+    protected void onFetchFailed(){}
 
     public LiveData<Resource<ResultType>> asLiveData(){
         return result;
