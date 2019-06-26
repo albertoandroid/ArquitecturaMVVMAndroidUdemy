@@ -127,4 +127,11 @@ public class RepoRepository {
             }
         }.asLiveData();
     }
+
+    public LiveData<Resource<Boolean>> searchNextPage(String query){
+        FetchNextSearchPageTask fetchNextSearchPageTask = new FetchNextSearchPageTask(
+                query, githubService, db);
+        appExecutors.networkIO().execute(fetchNextSearchPageTask);
+        return fetchNextSearchPageTask.getLiveData();
+    }
  }
