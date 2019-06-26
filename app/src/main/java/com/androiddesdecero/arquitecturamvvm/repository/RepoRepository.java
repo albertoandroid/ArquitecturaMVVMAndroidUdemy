@@ -1,6 +1,8 @@
 package com.androiddesdecero.arquitecturamvvm.repository;
 
+import androidx.arch.core.util.Function;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Transformations;
 
 import com.androiddesdecero.arquitecturamvvm.AppExecutors;
 import com.androiddesdecero.arquitecturamvvm.api.ApiResponse;
@@ -9,6 +11,9 @@ import com.androiddesdecero.arquitecturamvvm.db.GitHubDb;
 import com.androiddesdecero.arquitecturamvvm.db.RepoDao;
 import com.androiddesdecero.arquitecturamvvm.model.Contributor;
 import com.androiddesdecero.arquitecturamvvm.model.Repo;
+import com.androiddesdecero.arquitecturamvvm.model.RepoSearchResponse;
+import com.androiddesdecero.arquitecturamvvm.model.RepoSearchResult;
+import com.androiddesdecero.arquitecturamvvm.utils.AbsentLiveData;
 import com.androiddesdecero.arquitecturamvvm.utils.RateLimiter;
 
 import java.util.List;
@@ -133,5 +138,58 @@ public class RepoRepository {
                 query, githubService, db);
         appExecutors.networkIO().execute(fetchNextSearchPageTask);
         return fetchNextSearchPageTask.getLiveData();
+    }
+
+    public LiveData<Resource<List<Repo>>> search (String query){
+        return new NetworkBoundResource<List<Repo>, RepoSearchResponse>(appExecutors){
+
+            @Override
+            protected boolean shouldFetch(List<Repo> data) {
+                return data == null;
+            }
+
+            @Override
+            protected LiveData<List<Repo>> loadFromDb() {
+                return Transformations.switchMap(repoDao.search(query), new Function<RepoSearchResult, LiveData<List<Repo>>>() {
+                    @Override
+                    public LiveData<List<Repo>> apply(RepoSearchResult searchData) {
+                        if(searchData == null){
+                            return AbsentLiveData.create();
+                        }else {
+                            return repoDao.loadOrdered(searchData.repoIds);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            protected void saveCallResult(RepoSearchResponse item) {
+                List<Integer> repoIds = item.getRepoIds();
+                RepoSearchResult repoSearchResult = new RepoSearchResult(
+                        query, repoIds, item.getTotal(), item.getNextPage());
+                db.beginTransaction();
+                try{
+                    repoDao.insertRepos(item.getItems());
+                    repoDao.insert(repoSearchResult);
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+            }
+
+            @Override
+            protected LiveData<ApiResponse<RepoSearchResponse>> createCall() {
+                return githubService.searchRepos(query);
+            }
+
+            @Override
+            protected RepoSearchResponse processResponse(ApiResponse<RepoSearchResponse> response) {
+                RepoSearchResponse body = response.body;
+                if(body != null){
+                    body.setNextPage(response.getNextPage());
+                }
+                return body;
+            }
+        }.asLiveData();
     }
  }
