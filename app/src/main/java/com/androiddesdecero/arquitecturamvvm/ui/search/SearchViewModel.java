@@ -1,17 +1,74 @@
 package com.androiddesdecero.arquitecturamvvm.ui.search;
 
+import androidx.arch.core.util.Function;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
-import androidx.room.util.StringUtil;
 
+import com.androiddesdecero.arquitecturamvvm.model.Repo;
 import com.androiddesdecero.arquitecturamvvm.repository.RepoRepository;
 import com.androiddesdecero.arquitecturamvvm.repository.Resource;
+import com.androiddesdecero.arquitecturamvvm.utils.AbsentLiveData;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
-public class SearchViewModer extends ViewModel {
+import javax.inject.Inject;
+
+public class SearchViewModel extends ViewModel {
+
+    private final MutableLiveData<String> query = new MutableLiveData<>();
+    private final LiveData<Resource<List<Repo>>> results;
+    private final NextPageHandler nextPageHandler;
+
+    @Inject
+    SearchViewModel(RepoRepository repository){
+        nextPageHandler = new NextPageHandler(repository);
+        results = Transformations.switchMap(query, new Function<String, LiveData<Resource<List<Repo>>>>() {
+            @Override
+            public LiveData<Resource<List<Repo>>> apply(String search) {
+                if(search == null || search.trim().length() == 0){
+                    return AbsentLiveData.create();
+                }else{
+                    return repository.search(search);
+                }
+            }
+        });
+    }
+
+    public LiveData<Resource<List<Repo>>> getResults(){
+        return results;
+    }
+
+    public void setQuery(String originalInput){
+        String input = originalInput.toLowerCase(Locale.getDefault()).trim();
+        if(Objects.equals(input, query.getValue())){
+            return;
+        }
+        nextPageHandler.reset();
+        query.setValue(input);
+    }
+
+    public LiveData<LoadMoreState> getLoadMoreStatus(){
+        return nextPageHandler.getLoadMoreState();
+    }
+
+    public void loadNextPage(){
+        String value = query.getValue();
+        if(value == null || value.trim().length() == 0){
+            return;
+        }
+        nextPageHandler.queryNextPage(value);
+    }
+
+    void refresh(){
+        if(query.getValue() != null){
+            query.setValue(query.getValue());
+        }
+    }
 
 
 
