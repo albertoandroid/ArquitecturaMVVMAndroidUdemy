@@ -3,6 +3,8 @@ package com.androiddesdecero.arquitecturamvvm;
 import android.app.Activity;
 import android.app.Application;
 
+import com.androiddesdecero.arquitecturamvvm.di.AppInjector;
+
 import javax.inject.Inject;
 
 import dagger.android.AndroidInjector;
