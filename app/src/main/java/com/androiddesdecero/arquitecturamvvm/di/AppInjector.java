@@ -22,7 +22,7 @@ public class AppInjector {
     }
 
     public static void init(GithubApp githubApp){
-
+        DaggerAppComponent.builder().application(githubApp).build().inject(githubApp);
 
         githubApp.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
