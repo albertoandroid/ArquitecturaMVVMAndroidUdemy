@@ -1,6 +1,7 @@
 package com.androiddesdecero.arquitecturamvvm.ui.search;
 
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -8,18 +9,21 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingComponent;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.IBinder;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.androiddesdecero.arquitecturamvvm.R;
@@ -166,5 +170,13 @@ public class SearchFragment extends Fragment implements Injectable {
                 binding.get().executePendingBindings();
             }
         });
+    }
+
+    private void dismissKeyboard(IBinder windowToken){
+        FragmentActivity activity = getActivity();
+        if(activity != null){
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(windowToken, 0);
+        }
     }
 }
