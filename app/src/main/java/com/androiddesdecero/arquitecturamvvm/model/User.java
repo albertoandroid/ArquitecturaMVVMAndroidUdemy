@@ -1,5 +1,6 @@
 package com.androiddesdecero.arquitecturamvvm.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 
 import com.google.gson.annotations.SerializedName;
@@ -8,6 +9,7 @@ import com.google.gson.annotations.SerializedName;
 public class User {
 
     @SerializedName("login")
+    @NonNull
     public final String login;
     @SerializedName("avagtar_url")
     public final String avatarUrl;

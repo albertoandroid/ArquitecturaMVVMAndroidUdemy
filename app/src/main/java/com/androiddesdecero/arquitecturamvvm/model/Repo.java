@@ -1,5 +1,6 @@
 package com.androiddesdecero.arquitecturamvvm.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.Index;
@@ -14,6 +15,7 @@ public class Repo {
 
     public final int id;
     @SerializedName("name")
+    @NonNull
     public final String name;
 
     @SerializedName("full_name")
@@ -24,6 +26,7 @@ public class Repo {
     public final int stars;
     @SerializedName("owner")
     @Embedded(prefix = "owner_")
+    @NonNull
     public final Owner owner;
 
     public Repo(int id, String name, String fullName, String description, int stars, Owner owner) {
@@ -36,13 +39,14 @@ public class Repo {
     }
 
     public static class Owner{
+        @NonNull
         @SerializedName("login")
         public final String login;
 
         @SerializedName("url")
         public final String url;
 
-        public Owner(String login, String url) {
+        public Owner(@NonNull String login, String url) {
             this.login = login;
             this.url = url;
         }
