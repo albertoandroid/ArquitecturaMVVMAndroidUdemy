@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <import type="com.androiddesdecero.arquitecturamvvm.repository.Resource"/>
+        <import type="com.androiddesdecero.arquitecturamvvm.repository.Status" />
         <variable name="resource" type="Resource"/>
         <variable name="callback" type="com.androiddesdecero.arquitecturamvvm.ui.common.RetryCall"/>
     </data>
