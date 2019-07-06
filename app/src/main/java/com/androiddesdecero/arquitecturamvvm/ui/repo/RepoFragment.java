@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingComponent;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
@@ -23,7 +24,11 @@ import com.androiddesdecero.arquitecturamvvm.model.Contributor;
 import com.androiddesdecero.arquitecturamvvm.model.Repo;
 import com.androiddesdecero.arquitecturamvvm.repository.Resource;
 import com.androiddesdecero.arquitecturamvvm.ui.common.NavigationController;
+import com.androiddesdecero.arquitecturamvvm.ui.common.RetryCall;
 import com.androiddesdecero.arquitecturamvvm.utils.AutoClearedValue;
+
+import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -85,11 +90,43 @@ public class RepoFragment extends Fragment implements Injectable {
         initContributorList(repoViewModel);
     }
 
+    private void initContributorList(RepoViewModel viewModel){
+        viewModel.getContributors().observe(this, new Observer<Resource<List<Contributor>>>() {
+            @Override
+            public void onChanged(Resource<List<Contributor>> listResource) {
+                if(listResource != null && listResource.data != null){
+                    adapter.get().replace(listResource.data);
+                } else {
+                    adapter.get().replace(Collections.emptyList());
+                }
+            }
+        });
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_repo, container, false);
+        FragmentRepoBinding dataBinding = DataBindingUtil.inflate(
+                inflater, R.layout.fragment_repo, container, false);
+
+        dataBinding.setRetryCallback(new RetryCall() {
+            @Override
+            public void retry() {
+                repoViewModel.retry();
+            }
+        });
+        binding = new AutoClearedValue<>(this, dataBinding);
+        return dataBinding.getRoot();
+    }
+
+    public static RepoFragment create(String owner, String name){
+        RepoFragment repoFragment = new RepoFragment();
+        Bundle args = new Bundle();
+        args.putString(REPO_OWNER_KEY, owner);
+        args.putString(REPO_NAME_KEY, name);
+        repoFragment.setArguments(args);
+        return repoFragment;
     }
 
 }
