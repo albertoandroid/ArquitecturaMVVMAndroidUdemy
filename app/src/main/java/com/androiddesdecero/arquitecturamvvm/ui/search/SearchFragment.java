@@ -3,13 +3,18 @@ package com.androiddesdecero.arquitecturamvvm.ui.search;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingComponent;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +27,13 @@ import com.androiddesdecero.arquitecturamvvm.binding.FragmentDataBindingComponen
 import com.androiddesdecero.arquitecturamvvm.databinding.FragmentSearchBinding;
 import com.androiddesdecero.arquitecturamvvm.di.Injectable;
 import com.androiddesdecero.arquitecturamvvm.model.Repo;
+import com.androiddesdecero.arquitecturamvvm.repository.Resource;
 import com.androiddesdecero.arquitecturamvvm.ui.common.NavigationController;
 import com.androiddesdecero.arquitecturamvvm.ui.common.RepoListAdapter;
 import com.androiddesdecero.arquitecturamvvm.ui.common.RetryCall;
 import com.androiddesdecero.arquitecturamvvm.utils.AutoClearedValue;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -110,6 +118,52 @@ public class SearchFragment extends Fragment implements Injectable {
                     return true;
                 }
                 return false;
+            }
+        });
+    }
+
+    private void doSearch(View v){
+        String query = binding.get().input.getText().toString();
+        dismissKeyboard(v.getWindowToken());
+        binding.get().setQuery(query);
+        searchViewModel.setQuery(query);
+    }
+
+    private void initRecyclerView(){
+        binding.get().repoList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int lastPosition = layoutManager.findLastVisibleItemPosition();
+                if(lastPosition == adapter.get().getItemCount()-1){
+                    searchViewModel.loadNextPage();
+                }
+            }
+        });
+
+        searchViewModel.getResults().observe(this, new Observer<Resource<List<Repo>>>() {
+            @Override
+            public void onChanged(Resource<List<Repo>> result) {
+                binding.get().setSearchResource(result);
+                binding.get().setResultCount((result == null || result.data == null) ? 0 : result.data.size());
+                adapter.get().replace(result == null ? null : result.data);
+                binding.get().executePendingBindings();
+            }
+        });
+
+        searchViewModel.getLoadMoreStatus().observe(this, new Observer<SearchViewModel.LoadMoreState>() {
+            @Override
+            public void onChanged(SearchViewModel.LoadMoreState loadingMore) {
+                if(loadingMore == null){
+                    binding.get().setLoadingMore(false);
+                } else {
+                    binding.get().setLoadingMore(loadingMore.isRunning());
+                    String error = loadingMore.getErrorMessageIfNoHandled();
+                    if(error != null){
+                        Log.d("TAG1","Error on LoadMore");
+                    }
+                }
+                binding.get().executePendingBindings();
             }
         });
     }
