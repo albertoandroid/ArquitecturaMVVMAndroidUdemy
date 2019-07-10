@@ -113,7 +113,7 @@ public class RepoRepository {
             protected void saveCallResult(List<Contributor> contributors) {
                 for(Contributor contributor: contributors){
                     contributor.setRepoName(name);
-                    contributor.setRepoName(owner);
+                    contributor.setRepoOwner(owner);
                 }
                 db.beginTransaction();
                 try{

@@ -16,10 +16,10 @@ import retrofit2.http.Query;
 
 public interface WebServiceApi {
 
-    @GET("user/{login}")
+    @GET("users/{login}")
     LiveData<ApiResponse<User>> getUser(@Path("login") String login);
 
-    @GET("user/{login}/repos")
+    @GET("users/{login}/repos")
     LiveData<ApiResponse<List<Repo>>> getRepos(@Path("login") String login);
 
     @GET("repos/{owner}/{name}")
